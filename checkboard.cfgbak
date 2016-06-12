@@ -1,0 +1,5 @@
+host=192.168.2.128
+database=yun
+port=5432
+user=qiuchen
+password=123456
