@@ -1,49 +1,41 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
-#filename:checkmod.py
-#You need root power when install on linux
+# -*- coding: utf-8 -*-
 
-import os,time
-
-cwd = os.getcwd()
-
-print '\nChecking module xlrd ..'
+import os
+import sys
 
 try:
-    import xlrd
-except Exception, e:
-    print '\nStart to setup module xlrd ...'
-    os.chdir(cwd+'\\xlrd-0.9.4')
-    os.system('python setup.py install')
-    print '\nFinished.'
-else:
-    print '\nThe module xlrd was already exists.'
-time.sleep(1)
-
-print '\nChecking module xlwt ..'
-
-try:
-    import xlwt
-except Exception, e:
-    print '\nStart to setup module xlwt ...'
-    os.chdir(cwd+'\\xlwt-1.0.0')
-    os.system('python setup.py install')
-    print '\nFinished.'
-else:
-    print '\nThe module xlwt was already exists.'
-time.sleep(1)
-
-print '\nChecking module psycopg2 ..'
-
-try:
+    print('Checking module psycopg2 ...')
     import psycopg2
-except Exception, e:
-    print '\nStart to setup module psycopg2 ...'
-    os.chdir(cwd)
-    os.system('pip install psycopg2-2.6.1-cp27-none-win32.whl')
-    print '\nFinished.'
+except Exception as e:
+    print('Start to install module psycopg2 ...')
+    os.system('pip install psycopg2==2.6.2 -q -i https://pypi.doubanio.com/simple/')
+    print('Successfully installed psycopg2-2.6.2\n')
 else:
-    print '\nThe module psycopg2 was already exists.'
-time.sleep(1)
+    print('The module psycopg2 already exists.\n')
 
-getany = raw_input('\npress Enter to quit. ')
+try:
+    print('Checking module xlrd ...')
+    import xlrd
+except Exception as e:
+    print('Start to install module xlrd ...')
+    os.system('pip install xlrd==1.0.0 -q -i https://pypi.doubanio.com/simple/')
+    print('Successfully installed xlrd-1.0.0\n')
+else:
+    print('The module xlrd already exists.\n')
+
+try:
+    print('Checking module xlwt ...')
+    import xlwt
+except Exception as e:
+    print('Start to install module xlwt ...')
+    os.system('pip install xlwt==1.0.0 -q -i https://pypi.doubanio.com/simple/')
+    print('Successfully installed xlwt-1.0.0\n')
+else:
+    print('The module xlwt already exists.\n')
+
+getany = input('Check complete.Press Enter to quit. ')
+if getany:
+    sys.exit()
+else:
+    sys.exit()
