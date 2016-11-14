@@ -1,35 +1,35 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
-#filename:getcfg.py
+# -*- coding: utf-8 -*-
+# filename:getcfg.py
 
 def getcfg(filename):
     try:
-        with open(filename,'rb') as cfg:
-            cfglist = cfg.readlines()
-            a = []
-            for i in range(len(cfglist)):
-                if cfglist[i] == '\r\n':
+        with open(filename, 'r') as cfg:
+            readlist = cfg.readlines()
+            cfglist = []
+            for i in range(len(readlist)):
+                if readlist[i] == '\r\n':
                     pass
-                elif cfglist[i] == '\n':
+                elif readlist[i] == '\n':
                     pass
-                elif cfglist[i] == '\r':
+                elif readlist[i] == '\r':
                     pass
                 else:
-                    cfglist[i] = cfglist[i].replace('\r','')
-                    cfglist[i] = cfglist[i].replace('\n','')
-                    cfglist[i] = cfglist[i].replace(' ','')
-                    cfglist[i] = cfglist[i].split('=')
-                    a.append((cfglist[i][0],cfglist[i][1]))
-        a = dict(a)
-    except Exception,e:
-        print e
-        print 'Please check checkboard.cfg,looks like something configured \
-wrong.'
-        anyenter = raw_input('Press ENTER to confirm.')
-    return a
+                    readlist[i] = readlist[i].replace('\r', '')
+                    readlist[i] = readlist[i].replace('\n', '')
+                    readlist[i] = readlist[i].replace(' ', '')
+                    readlist[i] = readlist[i].split('=')
+                    cfglist.append((readlist[i][0], readlist[i][1]))
+        cfgdict = dict(cfglist)
+    except Exception as e:
+        print(e)
+        print('Please check checkboard.cfg,looks like something configured wrong.')
+        anyenter = input('Press ENTER to confirm.')
+    return cfgdict
+
 
 if __name__ == '__main__':
     a = getcfg('checkboard.cfg')
     for i in a.keys():
-        print i+'='+a[i]
-    quit = raw_input('Press ENTER to quit')
+        print(i + '=' + a[i])
+    quit = input('\nPress ENTER to quit.')
