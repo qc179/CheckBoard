@@ -111,7 +111,8 @@ for eachsrc in srclist:
             isheet1.write(rows, 2, eachsrc[1])
             isheet1.write(rows, 6, u'URL不规范，请修改')
         else:
-            sqltieba = "select fid,name,url,bid from board where is_active=1 and fid=101 and name='" + eachsrc[
+            sqltieba = "select fid,name,url,bid from board where is_active=1 \
+            and fid=101 and name='" + eachsrc[
                 0] + "' order by bid"
             cur.execute(sqltieba)
             anslist = cur.fetchall()
@@ -128,7 +129,8 @@ for eachsrc in srclist:
                 # isheet1.write(rows,6,'OK')
                 isheet1.write(rows, 5, len(anslist))
     else:
-        sql0 = "select fid,name,url,bid from board where is_active=1 and url='" + eachsrc[1] + "' order by bid"
+        sql0 = "select fid,name,url,bid from board where is_active=1 and \
+        url='"+ eachsrc[1] + "' order by bid"
         cur.execute(sql0)
         anslist = cur.fetchall()
         # anslist:查询结果列表

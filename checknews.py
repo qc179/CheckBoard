@@ -51,7 +51,7 @@ isheet1.write(0, 0, ' ')
 isheet1.write(0, 1, 'Name')
 isheet1.write(0, 2, 'URL')
 isheet1.write(0, 3, 'Fid')
-isheet1.write(0, 4, 'Bid')
+isheet1.write(0, 4, 'Nsid')
 isheet1.write(0, 5, 'Count')
 isheet1.write(0, 6, 'Status')
 isheet1.write(0, 7, 'SourceName')
@@ -72,8 +72,8 @@ for eachsrc in srclist:
         isheet1.write(rows, 2, eachsrc[1])
         isheet1.write(rows, 6, 'Name或URL含有空格，请修改')
     else:
-        sql0 = "select fid,name,url,nsid from news_site where is_active=1 \
-        and url='" + eachsrc[1] + "' order by nsid"
+        sql0 = "select fid,name,url,nsid from news_site where is_active=1 and \
+        url='" + eachsrc[1] + "' order by nsid"
         cur.execute(sql0)
         anslist = cur.fetchall()
         # anslist:a list of select results
