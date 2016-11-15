@@ -32,19 +32,19 @@ else:
 
 # 读取将要检查的 news
 opennews = xlrd.open_workbook('news.xls')
-bsheet1 = opennews.sheets()[0]
+newssheet1 = opennews.sheets()[0]
 srclist = []
 
-for row in range(bsheet1.nrows)[1:]:
+for row in range(newssheet1.nrows)[1:]:
     values = []
-    for col in range(bsheet1.ncols):
-        values.append(bsheet1.cell(row, col).value)
+    for col in range(newssheet1.ncols):
+        values.append(newssheet1.cell(row, col).value)
     srclist.append(values)
 
 print('There are {} news need to be checked ..'.format(len(srclist)))
 print('*' * 78)
 
-# 初始化 news_result.xls ，设置标题，列宽
+# 初始化输出文件，设置标题，列宽
 init = xlwt.Workbook(encoding='utf-8')
 isheet1 = init.add_sheet('sheet1')
 isheet1.write(0, 0, ' ')
@@ -65,7 +65,6 @@ rows = 1
 for eachsrc in srclist:
     # eachsrc[0]:news name
     # eachsrc[1]:news url
-    istieba = re.match('http://tieba\.baidu\.com.*', eachsrc[1])
     nameblank = re.match('\s+.*|.*\s+', eachsrc[0])
     urlblank = re.match('\s+.*|.*\s+', eachsrc[1])
     if nameblank or urlblank:
