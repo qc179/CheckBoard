@@ -18,18 +18,15 @@ def checktieba(tbname, tburl):
     namelast = tbname[namelen - 1]
     urlfmt = re.match('^http://tieba\.baidu\.com/f\?kw=[A-za-z0-9%]+$', tburl)
     try:
-        if namelast != u'吧':
-            a = 1
-            # 吧名不规范，请检查
+        if namelast != '吧':
+            a = '吧名不规范，请修改后再试'
         else:
             if urlfmt:
-                a = 0
-                # 吧名和URL正确
+                a = 1
             else:
-                a = 2
-                # URL不规范，请检查
+                a = 'URL不规范，请修改后再试'
     except Exception as e:
-        a = 9
+        a = '判断过程中出错'
         return a
     return a
 
@@ -78,7 +75,7 @@ isheet1.write(0, 3, 'Fid')
 isheet1.write(0, 4, 'Bid')
 isheet1.write(0, 5, 'Count')
 isheet1.write(0, 6, 'Status')
-isheet1.write(0, 7, 'SourceName')
+isheet1.write(0, 7, '信息源Name')
 isheet1.col(1).width = 256 * 15
 isheet1.col(2).width = 256 * 50
 isheet1.col(6).width = 256 * 20
@@ -86,75 +83,66 @@ isheet1.col(7).width = 256 * 15
 
 # 开始检查
 rows = 1
-for eachsrc in srclist:
-    # eachsrc[0]:board name
-    # eachsrc[1]:board url
-    istieba = re.match('http://tieba\.baidu\.com.*', eachsrc[1])
-    nameblank = re.match('\s+.*|.*\s+', eachsrc[0])
-    urlblank = re.match('\s+.*|.*\s+', eachsrc[1])
+for boardname, boardurl in srclist:
+    urlblank = re.match('\s+.*|.*\s+', boardurl)
+    istieba = re.match('http://tieba\.baidu\.com.*', boardurl)
+    nameblank = re.match('\s+.*|.*\s+', boardname)
     if nameblank or urlblank:
-        isheet1.write(rows, 1, eachsrc[0])
-        isheet1.write(rows, 2, eachsrc[1])
-        isheet1.write(rows, 6, u'Name或URL含有空格，请修改')
+        isheet1.write(rows, 1, boardname)
+        isheet1.write(rows, 2, boardurl)
+        isheet1.write(rows, 6, 'Name或URL含有空格，请修改后再试')
     elif istieba:
-        cktieba = checktieba(eachsrc[0], eachsrc[1])
-        if cktieba == 9:
-            isheet1.write(rows, 1, eachsrc[0])
-            isheet1.write(rows, 2, eachsrc[1])
-            isheet1.write(rows, 6, u'判断过程中出错')
-        elif cktieba == 1:
-            isheet1.write(rows, 1, eachsrc[0])
-            isheet1.write(rows, 2, eachsrc[1])
-            isheet1.write(rows, 6, u'吧名不规范，请修改')
-        elif cktieba == 2:
-            isheet1.write(rows, 1, eachsrc[0])
-            isheet1.write(rows, 2, eachsrc[1])
-            isheet1.write(rows, 6, u'URL不规范，请修改')
+        cktieba = checktieba(boardname, boardurl)
+        if cktieba != 1:
+            isheet1.write(rows, 1, boardname)
+            isheet1.write(rows, 2, boardurl)
+            isheet1.write(rows, 6, cktieba)
         else:
-            sqltieba = "select fid,name,url,bid from board where is_active=1 \
-            and fid=101 and name='" + eachsrc[
-                0] + "' order by bid"
-            cur.execute(sqltieba)
-            anslist = cur.fetchall()
-            if len(anslist) == 0:
-                isheet1.write(rows, 1, eachsrc[0])
-                isheet1.write(rows, 2, eachsrc[1])
-                isheet1.write(rows, 5, len(anslist))
+            findtieba = "select fid,name,url,bid from board where is_active=1 \
+            and fid=101 and name='" + boardname + "' order by bid"
+            cur.execute(findtieba)
+            # returnlist:查询结果列表
+            # data[0]:fid
+            # data[1]:name
+            # data[2]:url
+            # data[3]:bid
+            returnlist = cur.fetchall()
+            if len(returnlist) == 0:
+                isheet1.write(rows, 1, boardname)
+                isheet1.write(rows, 2, boardurl)
+                isheet1.write(rows, 5, 0)
             else:
-                ans = anslist[0]
-                isheet1.write(rows, 3, ans[0])
-                isheet1.write(rows, 1, ans[1])
-                isheet1.write(rows, 2, ans[2])
-                isheet1.write(rows, 4, ans[3])
-                # isheet1.write(rows,6,'OK')
-                isheet1.write(rows, 5, len(anslist))
+                # 若查询结果不为0，则保存结果中第一条记录的各字段
+                data = returnlist[0]
+                isheet1.write(rows, 3, data[0])
+                isheet1.write(rows, 1, data[1])
+                isheet1.write(rows, 2, data[2])
+                isheet1.write(rows, 4, data[3])
+                # 保存查询结果的数量
+                isheet1.write(rows, 5, len(returnlist))
     else:
-        sql0 = "select fid,name,url,bid from board where is_active=1 and \
-        url='"+ eachsrc[1] + "' order by bid"
-        cur.execute(sql0)
-        anslist = cur.fetchall()
-        # anslist:查询结果列表
-        if len(anslist) == 0:
-            # isheet1.write(rows,3,'NONE')
-            isheet1.write(rows, 1, eachsrc[0])
-            isheet1.write(rows, 2, eachsrc[1])
-            # isheet1.write(rows,4,'NONE')            
-            isheet1.write(rows, 5, len(anslist))
+        findboard = "select fid,name,url,bid from board where is_active=1 and \
+        url='" + boardurl + "' order by bid"
+        cur.execute(findboard)
+        returnlist = cur.fetchall()
+        if len(returnlist) == 0:
+            isheet1.write(rows, 1, boardname)
+            isheet1.write(rows, 2, boardurl)
+            isheet1.write(rows, 5, 0)
         else:
-            ans = anslist[0]
-            isheet1.write(rows, 3, ans[0])
-            isheet1.write(rows, 1, ans[1])
-            isheet1.write(rows, 2, ans[2])
-            isheet1.write(rows, 4, ans[3])
-            # isheet1.write(rows,6,'OK')
-            isheet1.write(rows, 5, len(anslist))
-            if ans[1] != eachsrc[0]:
-                isheet1.write(rows, 6, u'版面已配置但名称不同')
-                isheet1.write(rows, 7, eachsrc[0])
+            data = returnlist[0]
+            isheet1.write(rows, 3, data[0])
+            isheet1.write(rows, 1, data[1])
+            isheet1.write(rows, 2, data[2])
+            isheet1.write(rows, 4, data[3])
+            isheet1.write(rows, 5, len(returnlist))
+            if data[1] != boardname:
+                isheet1.write(rows, 6, '版面已配置但名称不同')
+                isheet1.write(rows, 7, boardname)
             else:
                 pass
     print('complete {}/{}.'.format(rows, len(srclist)))
-    rows = rows + 1
+    rows += 1
 
 # 保存结果
 filename = time.strftime('checkboard_result_%Y%m%d_%H%M%S.xls')
