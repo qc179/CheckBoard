@@ -108,7 +108,7 @@ for boardname, boardurl in srclist:
             sheet1.write(rows, statuscol, cktieba)
         else:
             findtieba = "select fid,name,url,bid from board where is_active=1 \
-            and fid=101 and name='" + boardname + "' order by bid"
+            and fid=101 and name='%s' order by bid" % (boardname)
             cur.execute(findtieba)
             # returnlist:查询结果列表
             # data[0]:fid
@@ -124,14 +124,16 @@ for boardname, boardurl in srclist:
             else:
                 # 反之，则保存结果中第一条记录的各字段和结果总数
                 data = returnlist[0]
+                sheet1.write(rows, stylecol, 1)
                 sheet1.write(rows, fidcol, data[0])
                 sheet1.write(rows, namecol, data[1])
                 sheet1.write(rows, urlcol, data[2])
                 sheet1.write(rows, idcol, data[3])
                 sheet1.write(rows, countcol, len(returnlist))
     else:
-        findboard = "select fid,name,url,bid from board where is_active=1 and \
-        url='" + boardurl + "' order by bid"
+        findboard = "select w.style,b.fid,b.name,b.url,b.bid from board b left \
+        join website w on b.fid=w.fid where b.is_active=1 and b.url='%s' order \
+        by b.bid" % (boardurl)
         cur.execute(findboard)
         returnlist = cur.fetchall()
         if len(returnlist) == 0:
@@ -140,12 +142,13 @@ for boardname, boardurl in srclist:
             sheet1.write(rows, countcol, 0)
         else:
             data = returnlist[0]
-            sheet1.write(rows, fidcol, data[0])
-            sheet1.write(rows, namecol, data[1])
-            sheet1.write(rows, urlcol, data[2])
-            sheet1.write(rows, idcol, data[3])
+            sheet1.write(rows, stylecol, data[0])
+            sheet1.write(rows, fidcol, data[1])
+            sheet1.write(rows, namecol, data[2])
+            sheet1.write(rows, urlcol, data[3])
+            sheet1.write(rows, idcol, data[4])
             sheet1.write(rows, countcol, len(returnlist))
-            if data[1] != boardname:
+            if data[2] != boardname:
                 sheet1.write(rows, statuscol, '版面已配置但名称不同')
                 sheet1.write(rows, srcnamecol, boardname)
             else:
