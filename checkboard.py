@@ -66,20 +66,29 @@ print('There are {} boards need to be checked ..'.format(len(srclist)))
 print('*' * 78)
 
 # 初始化输出文件，设置标题，列宽
+stylecol = 1
+namecol = 2
+urlcol = 3
+fidcol = 4
+idcol = 5
+countcol = 6
+statuscol = 7
+srcnamecol = 8
 init = xlwt.Workbook(encoding='utf-8')
-isheet1 = init.add_sheet('sheet1')
-isheet1.write(0, 0, ' ')
-isheet1.write(0, 1, 'Name')
-isheet1.write(0, 2, 'URL')
-isheet1.write(0, 3, 'Fid')
-isheet1.write(0, 4, 'Bid')
-isheet1.write(0, 5, 'Count')
-isheet1.write(0, 6, 'Status')
-isheet1.write(0, 7, '信息源Name')
-isheet1.col(1).width = 256 * 15
-isheet1.col(2).width = 256 * 50
-isheet1.col(6).width = 256 * 20
-isheet1.col(7).width = 256 * 15
+sheet1 = init.add_sheet('sheet1')
+sheet1.write(0, stylecol, 'Style')
+sheet1.write(0, namecol, 'Name')
+sheet1.write(0, urlcol, 'URL')
+sheet1.write(0, fidcol, 'Fid')
+sheet1.write(0, idcol, 'Bid')
+sheet1.write(0, countcol, 'Count')
+sheet1.write(0, statuscol, 'Status')
+sheet1.write(0, srcnamecol, '信息源Name')
+sheet1.col(stylecol).width = 256 * 6
+sheet1.col(namecol).width = 256 * 15
+sheet1.col(urlcol).width = 256 * 50
+sheet1.col(statuscol).width = 256 * 20
+sheet1.col(srcnamecol).width = 256 * 15
 
 # 开始检查
 rows = 1
@@ -88,15 +97,15 @@ for boardname, boardurl in srclist:
     istieba = re.match('http://tieba\.baidu\.com.*', boardurl)
     nameblank = re.match('\s+.*|.*\s+', boardname)
     if nameblank or urlblank:
-        isheet1.write(rows, 1, boardname)
-        isheet1.write(rows, 2, boardurl)
-        isheet1.write(rows, 6, 'Name或URL含有空格，请修改后再试')
+        sheet1.write(rows, namecol, boardname)
+        sheet1.write(rows, urlcol, boardurl)
+        sheet1.write(rows, statuscol, 'Name或URL含有空格，请修改后再试')
     elif istieba:
         cktieba = checktieba(boardname, boardurl)
         if cktieba != 1:
-            isheet1.write(rows, 1, boardname)
-            isheet1.write(rows, 2, boardurl)
-            isheet1.write(rows, 6, cktieba)
+            sheet1.write(rows, namecol, boardname)
+            sheet1.write(rows, urlcol, boardurl)
+            sheet1.write(rows, statuscol, cktieba)
         else:
             findtieba = "select fid,name,url,bid from board where is_active=1 \
             and fid=101 and name='" + boardname + "' order by bid"
@@ -108,50 +117,53 @@ for boardname, boardurl in srclist:
             # data[3]:bid
             returnlist = cur.fetchall()
             if len(returnlist) == 0:
-                isheet1.write(rows, 1, boardname)
-                isheet1.write(rows, 2, boardurl)
-                isheet1.write(rows, 5, 0)
+                # 若结果为0，则保存count为0
+                sheet1.write(rows, namecol, boardname)
+                sheet1.write(rows, urlcol, boardurl)
+                sheet1.write(rows, countcol, 0)
             else:
-                # 若查询结果不为0，则保存结果中第一条记录的各字段
+                # 反之，则保存结果中第一条记录的各字段和结果总数
                 data = returnlist[0]
-                isheet1.write(rows, 3, data[0])
-                isheet1.write(rows, 1, data[1])
-                isheet1.write(rows, 2, data[2])
-                isheet1.write(rows, 4, data[3])
-                # 保存查询结果的数量
-                isheet1.write(rows, 5, len(returnlist))
+                sheet1.write(rows, fidcol, data[0])
+                sheet1.write(rows, namecol, data[1])
+                sheet1.write(rows, urlcol, data[2])
+                sheet1.write(rows, idcol, data[3])
+                sheet1.write(rows, countcol, len(returnlist))
     else:
         findboard = "select fid,name,url,bid from board where is_active=1 and \
         url='" + boardurl + "' order by bid"
         cur.execute(findboard)
         returnlist = cur.fetchall()
         if len(returnlist) == 0:
-            isheet1.write(rows, 1, boardname)
-            isheet1.write(rows, 2, boardurl)
-            isheet1.write(rows, 5, 0)
+            sheet1.write(rows, namecol, boardname)
+            sheet1.write(rows, urlcol, boardurl)
+            sheet1.write(rows, countcol, 0)
         else:
             data = returnlist[0]
-            isheet1.write(rows, 3, data[0])
-            isheet1.write(rows, 1, data[1])
-            isheet1.write(rows, 2, data[2])
-            isheet1.write(rows, 4, data[3])
-            isheet1.write(rows, 5, len(returnlist))
+            sheet1.write(rows, fidcol, data[0])
+            sheet1.write(rows, namecol, data[1])
+            sheet1.write(rows, urlcol, data[2])
+            sheet1.write(rows, idcol, data[3])
+            sheet1.write(rows, countcol, len(returnlist))
             if data[1] != boardname:
-                isheet1.write(rows, 6, '版面已配置但名称不同')
-                isheet1.write(rows, 7, boardname)
+                sheet1.write(rows, statuscol, '版面已配置但名称不同')
+                sheet1.write(rows, srcnamecol, boardname)
             else:
                 pass
     print('complete {}/{}.'.format(rows, len(srclist)))
     rows += 1
 
+# 关闭连接
+# conn.commit()
+conn.close()
+
+print('*' * 78)
+
 # 保存结果
 filename = time.strftime('checkboard_result_%Y%m%d_%H%M%S.xls')
 init.save(filename)
 
-# 关闭连接
-# conn.commit()
-conn.close()
-print('*' * 78)
+time.sleep(1)
 
 anyenter = input('Check result has been saved.Press Enter to quit.')
 if anyenter:
