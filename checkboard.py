@@ -84,7 +84,7 @@ sheet1.write(0, idcol, 'Bid')
 sheet1.write(0, countcol, 'Count')
 sheet1.write(0, statuscol, 'Status')
 sheet1.write(0, srcnamecol, '信息源Name')
-sheet1.col(stylecol).width = 256 * 6
+sheet1.col(stylecol).width = 256 * 5
 sheet1.col(namecol).width = 256 * 15
 sheet1.col(urlcol).width = 256 * 50
 sheet1.col(statuscol).width = 256 * 20
@@ -94,8 +94,9 @@ sheet1.col(srcnamecol).width = 256 * 15
 rows = 1
 for boardname, boardurl in srclist:
     urlblank = re.match('\s+.*|.*\s+', boardurl)
-    istieba = re.match('http://tieba\.baidu\.com.*', boardurl)
     nameblank = re.match('\s+.*|.*\s+', boardname)
+    istieba = re.match('http://tieba\.baidu\.com.*', boardurl)
+    isweibo = re.match('http://(e\.)?weibo\.com/.*', boardurl)
     if nameblank or urlblank:
         sheet1.write(rows, namecol, boardname)
         sheet1.write(rows, urlcol, boardurl)
@@ -130,6 +131,38 @@ for boardname, boardurl in srclist:
                 sheet1.write(rows, urlcol, data[2])
                 sheet1.write(rows, idcol, data[3])
                 sheet1.write(rows, countcol, len(returnlist))
+    elif isweibo:
+        findweibo = "select 4 as style,b.fid,b.name,b.url,b.bid,b.is_active,\
+        wu.uid from weibo_user wu full join board b on wu.bid=b.bid where \
+        wu.name='%s' order by b.bid" % (boardname)
+        cur.execute(findweibo)
+        returnlist = cur.fetchall()
+        if len(returnlist) == 0:
+            sheet1.write(rows, stylecol, 4)
+            sheet1.write(rows, namecol, boardname)
+            sheet1.write(rows, urlcol, boardurl)
+            sheet1.write(rows, countcol, 0)
+        else:
+            data = returnlist[0]
+            if data[5] == 1:
+                sheet1.write(rows, stylecol, 4)
+                sheet1.write(rows, fidcol, data[1])
+                sheet1.write(rows, namecol, data[2])
+                sheet1.write(rows, urlcol, data[3])
+                sheet1.write(rows, idcol, data[4])
+                weibouid = 'uid:'+str(data[6])
+                sheet1.write(rows, statuscol, weibouid)
+                sheet1.write(rows, countcol, len(returnlist))
+            else:
+                sheet1.write(rows, stylecol, 4)
+                sheet1.write(rows, fidcol, data[1])
+                sheet1.write(rows, namecol, data[2])
+                sheet1.write(rows, urlcol, data[3])
+                sheet1.write(rows, idcol, data[4])
+                weibouid = 'uid:'+str(data[6])+' uid已存在，对应版面已被停止，请检\
+                查'
+                sheet1.write(rows, statuscol, weibouid)
+                sheet1.write(rows, countcol, len(returnlist))
     else:
         findboard = "select w.style,b.fid,b.name,b.url,b.bid from board b left \
         join website w on b.fid=w.fid where b.is_active=1 and b.url='%s' order \
@@ -137,9 +170,28 @@ for boardname, boardurl in srclist:
         cur.execute(findboard)
         returnlist = cur.fetchall()
         if len(returnlist) == 0:
-            sheet1.write(rows, namecol, boardname)
-            sheet1.write(rows, urlcol, boardurl)
-            sheet1.write(rows, countcol, 0)
+            findnews = "select style,fid,name,url,nsid from news_site where \
+            is_active=1 and url='%s'" % (boardurl)
+            cur.execute(findnews)
+            returnlist = cur.fetchall()
+            if len(returnlist) == 0:
+                sheet1.write(rows, namecol, boardname)
+                sheet1.write(rows, urlcol, boardurl)
+                sheet1.write(rows, countcol, 0)
+            else:
+                data = returnlist[0]
+                data = returnlist[0]
+                sheet1.write(rows, stylecol, data[0])
+                sheet1.write(rows, fidcol, data[1])
+                sheet1.write(rows, namecol, data[2])
+                sheet1.write(rows, urlcol, data[3])
+                sheet1.write(rows, idcol, data[4])
+                sheet1.write(rows, countcol, len(returnlist))
+                if data[2] != boardname:
+                    sheet1.write(rows, statuscol, '版面已配置但名称不同')
+                    sheet1.write(rows, srcnamecol, boardname)
+                else:
+                    pass
         else:
             data = returnlist[0]
             sheet1.write(rows, stylecol, data[0])
